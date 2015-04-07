@@ -52,7 +52,7 @@ NODE_LIST_FIELDS = ['uuid', 'name', 'instance_uuid', 'power_state',
                     'provision_state', 'maintenance']
 
 NODE_LIST_FIELD_LABELS = ['UUID', 'Name', 'Instance UUID', 'Power State',
-                          'Provisioning State', 'Maintenance']
+                          'Provision State', 'Maintenance']
 
 
 # Ports
