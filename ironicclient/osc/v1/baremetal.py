@@ -17,6 +17,7 @@
 
 import logging
 
+from cliff import command
 from cliff import lister
 from cliff import show
 from openstackclient.common import utils as oscutils
@@ -156,3 +157,30 @@ class ShowBaremetal(show.ShowOne):
         node.pop("links", None)
 
         return zip(*sorted(six.iteritems(node)))
+
+
+class DeleteBaremetal(command.Command):
+    """Unregister a baremetal node"""
+
+    log = logging.getLogger(__name__ + ".DeleteBaremetal")
+
+    def get_parser(self, prog_name):
+        parser = super(DeleteBaremetal, self).get_parser(prog_name)
+        parser.add_argument(
+            "node",
+            metavar="<node>",
+            help="Node to delete (name or ID)")
+
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.debug("take_action(%s)", parsed_args)
+
+        baremetal_client = self.app.client_manager.baremetal
+
+        node = oscutils.find_resource(baremetal_client.node,
+                                      parsed_args.node)
+        baremetal_client.node.delete(node.uuid)
+        print(_('Deleted node %s') % node.uuid)
+
+        return
