@@ -30,6 +30,7 @@ BAREMETAL = {
     'power_state': baremetal_power_state,
     'provision_state': baremetal_provision_state,
     'maintenance': baremetal_maintenance,
+    'links': []
 }
 
 
