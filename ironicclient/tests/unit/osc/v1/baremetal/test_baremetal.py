@@ -65,6 +65,10 @@ class TestBaremetalList(TestBaremetal):
 
         # Set expected values
         kwargs = {
+            'associated': False,
+            'detail': False,
+            'maintenance': False,
+            'marker': None,
         }
 
         self.baremetal_mock.node.list.assert_called_with(
@@ -73,6 +77,7 @@ class TestBaremetalList(TestBaremetal):
 
         collist = (
             "UUID",
+            "Name",
             "Instance UUID",
             "Power State",
             "Provisioning State",
@@ -81,9 +86,71 @@ class TestBaremetalList(TestBaremetal):
         self.assertEqual(collist, columns)
         datalist = ((
             baremetal_fakes.baremetal_uuid,
+            '',
             baremetal_fakes.baremetal_instance_uuid,
             baremetal_fakes.baremetal_power_state,
-            baremetal_fakes.baremetal_provision_state,
+            '',
             baremetal_fakes.baremetal_maintenance,
+        ), )
+        self.assertEqual(datalist, tuple(data))
+
+    def test_baremetal_list_long(self):
+        arglist = [
+            '--long',
+        ]
+        verifylist = [
+            ('detail', True),
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        # DisplayCommandBase.take_action() returns two tuples
+        columns, data = self.cmd.take_action(parsed_args)
+
+        # Set expected values
+        kwargs = {
+            'associated': False,
+            'detail': True,
+            'maintenance': False,
+            'marker': None,
+        }
+
+        self.baremetal_mock.node.list.assert_called_with(
+            **kwargs
+        )
+
+        collist = ('Chassis UUID', 'Created At', 'Console Enabled', 'Driver',
+                   'Driver Info', 'Driver Internal Info', 'Extra',
+                   'Instance Info', 'Instance UUID', 'Last Error',
+                   'Maintenance', 'Maintenance Reason', 'Power State',
+                   'Properties', 'Provision State', 'Reservation',
+                   'Target Power State', 'Target Provision State',
+                   'Updated At', 'Inspection Finished At',
+                   'Inspection Started At', 'UUID', 'Name')
+        self.assertEqual(collist, columns)
+        datalist = ((
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            baremetal_fakes.baremetal_instance_uuid,
+            '',
+            baremetal_fakes.baremetal_maintenance,
+            '',
+            baremetal_fakes.baremetal_power_state,
+            '',
+            baremetal_fakes.baremetal_provision_state,
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            baremetal_fakes.baremetal_uuid,
+            '',
         ), )
         self.assertEqual(datalist, tuple(data))
