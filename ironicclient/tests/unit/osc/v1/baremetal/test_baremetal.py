@@ -230,3 +230,32 @@ class TestBaremetalShow(TestBaremetal):
         self.baremetal_mock.node.get_by_instance_uuid.assert_called_with(
             *args
         )
+
+
+class TestBaremetalDelete(TestBaremetal):
+    def setUp(self):
+        super(TestBaremetalDelete, self).setUp()
+
+        self.baremetal_mock.node.get.return_value = FakeBaremetalResource(
+            None,
+            copy.deepcopy(baremetal_fakes.BAREMETAL),
+            loaded=True,
+        )
+
+        # Get the command object to test
+        self.cmd = baremetal.DeleteBaremetal(self.app, None)
+
+    def test_baremetal_delete(self):
+        arglist = ['xxx-xxxxxx-xxxx']
+        verifylist = []
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        # Set expected values
+        args = ['xxx-xxxxxx-xxxx']
+
+        self.baremetal_mock.node.delete.assert_called_with(
+            *args
+        )
