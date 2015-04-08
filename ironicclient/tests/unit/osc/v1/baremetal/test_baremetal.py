@@ -154,3 +154,79 @@ class TestBaremetalList(TestBaremetal):
             '',
         ), )
         self.assertEqual(datalist, tuple(data))
+
+
+class TestBaremetalShow(TestBaremetal):
+    def setUp(self):
+        super(TestBaremetalShow, self).setUp()
+
+        self.baremetal_mock.node.get.return_value = FakeBaremetalResource(
+            None,
+            copy.deepcopy(baremetal_fakes.BAREMETAL),
+            loaded=True,
+        )
+
+        self.baremetal_mock.node.get_by_instance_uuid.return_value = (
+            FakeBaremetalResource(
+                None,
+                copy.deepcopy(baremetal_fakes.BAREMETAL),
+                loaded=True,
+            ))
+
+        # Get the command object to test
+        self.cmd = baremetal.ShowBaremetal(self.app, None)
+
+    def test_baremetal_show(self):
+        arglist = ['xxx-xxxxxx-xxxx']
+        verifylist = []
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        # DisplayCommandBase.take_action() returns two tuples
+        columns, data = self.cmd.take_action(parsed_args)
+
+        # Set expected values
+        args = ['xxx-xxxxxx-xxxx']
+
+        self.baremetal_mock.node.get.assert_called_with(
+            *args
+        )
+
+        collist = (
+            'instance_uuid',
+            'maintenance',
+            'power_state',
+            'provision_state',
+            'uuid'
+        )
+        self.assertEqual(collist, columns)
+        datalist = (
+            'yyy-yyyyyy-yyyy',
+            False,
+            None,
+            None,
+            'xxx-xxxxxx-xxxx'
+        )
+        self.assertEqual(datalist, tuple(data))
+
+    def test_baremetal_show_with_instance_uuid(self):
+        arglist = [
+            'xxx-xxxxxx-xxxx',
+            '--instance',
+        ]
+
+        verifylist = [
+            ('instance_uuid', True)
+        ]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        # DisplayCommandBase.take_action() returns two tuples
+        columns, data = self.cmd.take_action(parsed_args)
+
+        # Set expected values
+        args = ['xxx-xxxxxx-xxxx']
+
+        self.baremetal_mock.node.get_by_instance_uuid.assert_called_with(
+            *args
+        )

@@ -18,7 +18,9 @@
 import logging
 
 from cliff import lister
+from cliff import show
 from openstackclient.common import utils as oscutils
+import six
 
 from ironicclient.common.i18n import _
 from ironicclient import exc
@@ -120,3 +122,37 @@ class ListBaremetal(lister.Lister):
         return (column_headers,
                 (oscutils.get_item_properties(s, columns, formatters={
                     'Properties': oscutils.format_dict},) for s in data))
+
+
+class ShowBaremetal(show.ShowOne):
+    """Show baremetal node details"""
+
+    log = logging.getLogger(__name__ + ".ShowBaremetal")
+
+    def get_parser(self, prog_name):
+        parser = super(ShowBaremetal, self).get_parser(prog_name)
+        parser.add_argument(
+            "node",
+            metavar="<node>",
+            help="Node to display (name or ID)")
+        parser.add_argument(
+            '--instance',
+            dest='instance_uuid',
+            action='store_true',
+            default=False,
+            help='When <node> is a UUID, treat it as an instance UUID.')
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.debug("take_action(%s)", parsed_args)
+
+        baremetal_client = self.app.client_manager.baremetal
+        if parsed_args.instance_uuid:
+            node = baremetal_client.node.get_by_instance_uuid(
+                parsed_args.node)._info
+        else:
+            node = oscutils.find_resource(baremetal_client.node,
+                                          parsed_args.node)._info
+        node.pop("links", None)
+
+        return zip(*sorted(six.iteritems(node)))
