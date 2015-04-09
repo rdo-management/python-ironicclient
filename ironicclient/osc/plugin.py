@@ -17,22 +17,32 @@
 
 import logging
 
+from openstackclient.common import exceptions
 from openstackclient.common import utils
 
 from ironicclient.osc import client as ironic_client
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_BAREMETAL_API_VERSION = '1'
+DEFAULT_BAREMETAL_API_VERSION = '1.6'
 API_VERSION_OPTION = 'os_baremetal_api_version'
 API_NAME = 'baremetal'
+API_VERSION_MAP = {
+    "1": "1",
+    "1.6": "1",
+}
 
 
 def make_client(instance):
     """Returns a baremetal service client."""
-    baremetal_client = ironic_client.get_client_class(
-        instance._api_version[API_NAME],
-    )
+    try:
+        baremetal_client = ironic_client.get_client_class(
+            API_VERSION_MAP[instance._api_version[API_NAME]])
+    except Exception:
+        msg = "Invalid %s client version '%s'. Must be one of %s" % (
+            (API_NAME, instance._api_version[API_NAME],
+                ", ".join(sorted(API_VERSION_MAP))))
+        raise exceptions.UnsupportedVersion(msg)
     LOG.debug('Instantiating baremetal client: %s', baremetal_client)
 
     # Set client http_log_debug to True if verbosity level is high enough
