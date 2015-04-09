@@ -21,6 +21,8 @@ from ironicclient.osc.v1 import baremetal
 from ironicclient.tests.unit.osc import fakes
 from ironicclient.tests.unit.osc.v1.baremetal import fakes as baremetal_fakes
 
+from openstackclient.tests import utils as oscutils
+
 
 class TestBaremetal(baremetal_fakes.TestBaremetal):
 
@@ -259,3 +261,121 @@ class TestBaremetalDelete(TestBaremetal):
         self.baremetal_mock.node.delete.assert_called_with(
             *args
         )
+
+
+class TestBaremetalCreate(TestBaremetal):
+    def setUp(self):
+        super(TestBaremetalCreate, self).setUp()
+
+        self.baremetal_mock.node.create.return_value = FakeBaremetalResource(
+            None,
+            copy.deepcopy(baremetal_fakes.BAREMETAL),
+            loaded=True,
+        )
+
+        # Get the command object to test
+        self.cmd = baremetal.CreateBaremetal(self.app, None)
+        self.arglist = ['--driver', 'fake_driver']
+        self.verifylist = [('driver', 'fake_driver')]
+        self.collist = (
+            'instance_uuid',
+            'maintenance',
+            'power_state',
+            'provision_state',
+            'uuid'
+        )
+        self.datalist = ('yyy-yyyyyy-yyyy', False, None, None,
+                         'xxx-xxxxxx-xxxx')
+        self.actual_kwargs = {
+            'driver': 'fake_driver',
+        }
+
+    def check_with_options(self, addl_arglist, addl_verifylist, addl_kwargs):
+        arglist = copy.copy(self.arglist) + addl_arglist
+        verifylist = copy.copy(self.verifylist) + addl_verifylist
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        # DisplayCommandBase.take_action() returns two tuples
+        columns, data = self.cmd.take_action(parsed_args)
+
+        collist = copy.copy(self.collist)
+        self.assertEqual(collist, columns)
+
+        datalist = copy.copy(self.datalist)
+        self.assertEqual(datalist, tuple(data))
+
+        kwargs = copy.copy(self.actual_kwargs)
+        kwargs.update(addl_kwargs)
+
+        self.baremetal_mock.node.create.assert_called_once_with(**kwargs)
+
+    def test_baremetal_create_no_options(self):
+        arglist = []
+        verifylist = []
+
+        self.assertRaises(oscutils.ParserException,
+                          self.check_parser,
+                          self.cmd, arglist, verifylist)
+
+    def test_baremetal_create_with_driver(self):
+        arglist = copy.copy(self.arglist)
+
+        verifylist = copy.copy(self.verifylist)
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        # DisplayCommandBase.take_action() returns two tuples
+        columns, data = self.cmd.take_action(parsed_args)
+
+        collist = copy.copy(self.collist)
+        self.assertEqual(collist, columns)
+
+        datalist = copy.copy(self.datalist)
+        self.assertEqual(datalist, tuple(data))
+
+        kwargs = copy.copy(self.actual_kwargs)
+
+        self.baremetal_mock.node.create.assert_called_once_with(**kwargs)
+
+    def test_baremetal_create_with_chassis(self):
+        self.check_with_options(['--chassis', 'chassis_uuid'],
+                                [('chassis_uuid', 'chassis_uuid')],
+                                {'chassis_uuid': 'chassis_uuid'})
+
+    def test_baremetal_create_with_driver_info(self):
+        self.check_with_options(['-i', 'arg1=val1', '-i', 'arg2=val2'],
+                                [('driver_info',
+                                  ['arg1=val1',
+                                   'arg2=val2'])],
+                                {'driver_info': {
+                                    'arg1': 'val1',
+                                    'arg2': 'val2'}})
+
+    def test_baremetal_create_with_properties(self):
+        self.check_with_options(['-p', 'arg1=val1', '-p', 'arg2=val2'],
+                                [('properties',
+                                  ['arg1=val1',
+                                   'arg2=val2'])],
+                                {'properties': {
+                                    'arg1': 'val1',
+                                    'arg2': 'val2'}})
+
+    def test_baremetal_create_with_extra(self):
+        self.check_with_options(['-e', 'arg1=val1', '-e', 'arg2=val2'],
+                                [('extra',
+                                  ['arg1=val1',
+                                   'arg2=val2'])],
+                                {'extra': {
+                                    'arg1': 'val1',
+                                    'arg2': 'val2'}})
+
+    def test_baremetal_create_with_uuid(self):
+        self.check_with_options(['--uuid', 'uuid'],
+                                [('uuid', 'uuid')],
+                                {'uuid': 'uuid'})
+
+    def test_baremetal_create_with_name(self):
+        self.check_with_options(['--name', 'name'],
+                                [('name', 'name')],
+                                {'name': 'name'})
