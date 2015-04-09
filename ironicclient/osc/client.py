@@ -31,6 +31,7 @@ from ironicclient import exceptions
 def get_client_class(version):
     version_map = {
         '1': 'ironicclient.v1.client.Client',
+        '1.6': 'ironicclient.v1.client.Client',
     }
     try:
         client_path = version_map[str(version)]
