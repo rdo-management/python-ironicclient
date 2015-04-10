@@ -260,3 +260,30 @@ class CreateBaremetal(show.ShowOne):
         node.pop('links', None)
 
         return zip(*sorted(six.iteritems(node)))
+
+
+class RebootBaremetal(command.Command):
+    """Reboot baremetal system"""
+
+    log = logging.getLogger(__name__ + ".RebootBaremetal")
+
+    def get_parser(self, prog_name):
+        parser = super(RebootBaremetal, self).get_parser(prog_name)
+
+        parser.add_argument(
+            'node',
+            metavar='<node>',
+            help="Name or UUID of the node.")
+
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.debug("take_action(%s)", parsed_args)
+
+        baremetal_client = self.app.client_manager.baremetal
+
+        if parsed_args.node is not None:
+            baremetal_client.node.set_power_state(
+                parsed_args.node, 'reboot')
+
+        return

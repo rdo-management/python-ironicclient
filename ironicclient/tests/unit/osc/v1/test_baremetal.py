@@ -375,3 +375,30 @@ class TestBaremetalCreate(TestBaremetal):
         self.check_with_options(['--name', 'name'],
                                 [('name', 'name')],
                                 {'name': 'name'})
+
+
+class TestBaremetalReboot(TestBaremetal):
+    def setUp(self):
+        super(TestBaremetalReboot, self).setUp()
+
+        # Get the command object to test
+        self.cmd = baremetal.RebootBaremetal(self.app, None)
+
+    def test_baremetal_reboot_no_options(self):
+        arglist = []
+        verifylist = []
+
+        self.assertRaises(oscutils.ParserException,
+                          self.check_parser,
+                          self.cmd, arglist, verifylist)
+
+    def test_baremetal_set_uuid_only(self):
+        arglist = ['node_uuid']
+        verifylist = [('node', 'node_uuid')]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.baremetal_mock.node.set_power_state.assert_called_once_with(
+            'node_uuid', 'reboot')
