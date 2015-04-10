@@ -18,8 +18,7 @@
 import copy
 
 from ironicclient.osc.v1 import baremetal
-from ironicclient.tests.unit.osc import fakes
-from ironicclient.tests.unit.osc.v1.baremetal import fakes as baremetal_fakes
+from ironicclient.tests.unit.osc.v1 import fakes as baremetal_fakes
 
 from openstackclient.tests import utils as oscutils
 
@@ -34,19 +33,13 @@ class TestBaremetal(baremetal_fakes.TestBaremetal):
         self.baremetal_mock.reset_mock()
 
 
-class FakeBaremetalResource(fakes.FakeResource):
-
-    def get_keys(self):
-        return {'property': 'value'}
-
-
 class TestBaremetalList(TestBaremetal):
 
     def setUp(self):
         super(TestBaremetalList, self).setUp()
 
         self.baremetal_mock.node.list.return_value = [
-            FakeBaremetalResource(
+            baremetal_fakes.FakeBaremetalResource(
                 None,
                 copy.deepcopy(baremetal_fakes.BAREMETAL),
                 loaded=True,
@@ -162,14 +155,15 @@ class TestBaremetalShow(TestBaremetal):
     def setUp(self):
         super(TestBaremetalShow, self).setUp()
 
-        self.baremetal_mock.node.get.return_value = FakeBaremetalResource(
-            None,
-            copy.deepcopy(baremetal_fakes.BAREMETAL),
-            loaded=True,
-        )
+        self.baremetal_mock.node.get.return_value = (
+            baremetal_fakes.FakeBaremetalResource(
+                None,
+                copy.deepcopy(baremetal_fakes.BAREMETAL),
+                loaded=True,
+            ))
 
         self.baremetal_mock.node.get_by_instance_uuid.return_value = (
-            FakeBaremetalResource(
+            baremetal_fakes.FakeBaremetalResource(
                 None,
                 copy.deepcopy(baremetal_fakes.BAREMETAL),
                 loaded=True,
@@ -238,11 +232,12 @@ class TestBaremetalDelete(TestBaremetal):
     def setUp(self):
         super(TestBaremetalDelete, self).setUp()
 
-        self.baremetal_mock.node.get.return_value = FakeBaremetalResource(
-            None,
-            copy.deepcopy(baremetal_fakes.BAREMETAL),
-            loaded=True,
-        )
+        self.baremetal_mock.node.get.return_value = (
+            baremetal_fakes.FakeBaremetalResource(
+                None,
+                copy.deepcopy(baremetal_fakes.BAREMETAL),
+                loaded=True,
+            ))
 
         # Get the command object to test
         self.cmd = baremetal.DeleteBaremetal(self.app, None)
@@ -267,11 +262,12 @@ class TestBaremetalCreate(TestBaremetal):
     def setUp(self):
         super(TestBaremetalCreate, self).setUp()
 
-        self.baremetal_mock.node.create.return_value = FakeBaremetalResource(
-            None,
-            copy.deepcopy(baremetal_fakes.BAREMETAL),
-            loaded=True,
-        )
+        self.baremetal_mock.node.create.return_value = (
+            baremetal_fakes.FakeBaremetalResource(
+                None,
+                copy.deepcopy(baremetal_fakes.BAREMETAL),
+                loaded=True,
+            ))
 
         # Get the command object to test
         self.cmd = baremetal.CreateBaremetal(self.app, None)

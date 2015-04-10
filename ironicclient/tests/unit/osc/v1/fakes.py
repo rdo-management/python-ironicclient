@@ -18,6 +18,8 @@
 import mock
 from openstackclient.tests import utils
 
+from ironicclient.tests.unit.osc import fakes
+
 baremetal_uuid = 'xxx-xxxxxx-xxxx'
 baremetal_instance_uuid = 'yyy-yyyyyy-yyyy'
 baremetal_power_state = None
@@ -33,6 +35,17 @@ BAREMETAL = {
     'links': []
 }
 
+baremetal_port_uuid = 'zzz-zzzzzz-zzzz'
+baremetal_port_address = 'AA:BB:CC:DD:EE:FF'
+baremetal_port_extra = {}
+
+BAREMETAL_PORT = {
+    'uuid': baremetal_port_uuid,
+    'address': baremetal_port_address,
+    'extra': baremetal_port_extra,
+    'node_uuid': baremetal_uuid,
+}
+
 
 class TestBaremetal(utils.TestCommand):
 
@@ -41,3 +54,9 @@ class TestBaremetal(utils.TestCommand):
 
         self.app.client_manager.auth_ref = mock.Mock(auth_token="TOKEN")
         self.app.client_manager.baremetal = mock.Mock()
+
+
+class FakeBaremetalResource(fakes.FakeResource):
+
+    def get_keys(self):
+        return {'property': 'value'}
