@@ -337,3 +337,68 @@ class UnsetBaremetal(show.ShowOne):
         node.pop("links", None)
 
         return zip(*sorted(six.iteritems(node)))
+
+
+class RebootBaremetal(command.Command):
+    """Reboot baremetal system"""
+
+    log = logging.getLogger(__name__ + ".RebootBaremetal")
+
+    def get_parser(self, prog_name):
+        parser = super(RebootBaremetal, self).get_parser(prog_name)
+
+        parser.add_argument(
+            'node',
+            metavar='<node>',
+            help="Name or UUID of the node.")
+
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.debug("take_action(%s)", parsed_args)
+
+        baremetal_client = self.app.client_manager.baremetal
+
+        baremetal_client.node.set_power_state(
+            parsed_args.node, 'reboot')
+
+
+class PowerBaremetal(command.Command):
+    """Set power state of baremetal system"""
+
+    log = logging.getLogger(__name__ + ".PowerBaremetal")
+
+    def get_parser(self, prog_name):
+        parser = super(PowerBaremetal, self).get_parser(prog_name)
+
+        parser.add_argument(
+            'node',
+            metavar='<node>',
+            help="Name of UUID of the node."
+        )
+        on_off_group = parser.add_mutually_exclusive_group()
+        on_off_group.add_argument(
+            '--on',
+            action='store_true',
+            help='Turn baremetal node on',
+        )
+        on_off_group.add_argument(
+            '--off',
+            action='store_true',
+            help='Turn baremetal node off',
+        )
+
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.debug("take_action(%s)", parsed_args)
+
+        baremetal_client = self.app.client_manager.baremetal
+
+        if not parsed_args.on and not parsed_args.off:
+            return
+
+        power_state = 'off' if parsed_args.off else 'on'
+
+        baremetal_client.node.set_power_state(
+            parsed_args.node, power_state)
