@@ -452,3 +452,143 @@ class TestBaremetalPower(TestBaremetal):
 
         self.baremetal_mock.node.set_power_state.assert_called_once_with(
             'node_uuid', 'off')
+
+
+class TestBaremetalSet(TestBaremetal):
+    def setUp(self):
+        super(TestBaremetalSet, self).setUp()
+
+        self.baremetal_mock.node.update.return_value = (
+            baremetal_fakes.FakeBaremetalResource(
+                None,
+                copy.deepcopy(baremetal_fakes.BAREMETAL),
+                loaded=True,
+            ))
+
+        # Get the command object to test
+        self.cmd = baremetal.SetBaremetal(self.app, None)
+
+    def test_baremetal_set_no_options(self):
+        arglist = []
+        verifylist = []
+
+        self.assertRaises(oscutils.ParserException,
+                          self.check_parser,
+                          self.cmd, arglist, verifylist)
+
+    def test_baremetal_set_uuid_only(self):
+        arglist = ['node_uuid']
+        verifylist = [('node', 'node_uuid')]
+
+        self.assertRaises(oscutils.ParserException,
+                          self.check_parser,
+                          self.cmd, arglist, verifylist)
+
+    def test_baremetal_set_one_property(self):
+        arglist = ['node_uuid', 'path/to/property=value']
+        verifylist = [('node', 'node_uuid'),
+                      ('properties', [['path/to/property=value']])]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.baremetal_mock.node.update.assert_called_once_with(
+            'node_uuid',
+            [{'path': '/path/to/property', 'value': 'value', 'op': 'add'}])
+
+    def test_baremetal_set_multiple_properties(self):
+        arglist = ['node_uuid',
+                   'path/to/property=value',
+                   'other/path=value2']
+        verifylist = [('node', 'node_uuid'),
+                      ('properties',
+                       [['path/to/property=value',
+                         'other/path=value2']])]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.baremetal_mock.node.update.assert_called_once_with(
+            'node_uuid',
+            [{'path': '/path/to/property', 'value': 'value', 'op': 'add'},
+             {'path': '/other/path', 'value': 'value2', 'op': 'add'}]
+        )
+
+    def test_baremetal_set_replace_property(self):
+        arglist = ['node_uuid', '--update', 'path/to/property=value']
+        verifylist = [('node', 'node_uuid'),
+                      ('update', True),
+                      ('properties', [['path/to/property=value']])]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.baremetal_mock.node.update.assert_called_once_with(
+            'node_uuid',
+            [{'path': '/path/to/property', 'value': 'value', 'op': 'replace'}])
+
+
+class TestBaremetalUnset(TestBaremetal):
+    def setUp(self):
+        super(TestBaremetalUnset, self).setUp()
+
+        self.baremetal_mock.node.update.return_value = (
+            baremetal_fakes.FakeBaremetalResource(
+                None,
+                copy.deepcopy(baremetal_fakes.BAREMETAL),
+                loaded=True,
+            ))
+
+        # Get the command object to test
+        self.cmd = baremetal.UnsetBaremetal(self.app, None)
+
+    def test_baremetal_unset_no_options(self):
+        arglist = []
+        verifylist = []
+
+        self.assertRaises(oscutils.ParserException,
+                          self.check_parser,
+                          self.cmd, arglist, verifylist)
+
+    def test_baremetal_unset_uuid_only(self):
+        arglist = ['node_uuid']
+        verifylist = [('node', 'node_uuid')]
+
+        self.assertRaises(oscutils.ParserException,
+                          self.check_parser,
+                          self.cmd, arglist, verifylist)
+
+    def test_baremetal_unset_one_property(self):
+        arglist = ['node_uuid', 'path/to/property']
+        verifylist = [('node', 'node_uuid'),
+                      ('properties', [['path/to/property']])]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.baremetal_mock.node.update.assert_called_once_with(
+            'node_uuid',
+            [{'path': '/path/to/property', 'op': 'remove'}])
+
+    def test_baremetal_unset_multiple_properties(self):
+        arglist = ['node_uuid',
+                   'path/to/property',
+                   'other/path']
+        verifylist = [('node', 'node_uuid'),
+                      ('properties',
+                       [['path/to/property',
+                         'other/path']])]
+
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+
+        self.cmd.take_action(parsed_args)
+
+        self.baremetal_mock.node.update.assert_called_once_with(
+            'node_uuid',
+            [{'path': '/path/to/property', 'op': 'remove'},
+             {'path': '/other/path', 'op': 'remove'}]
+        )
