@@ -330,3 +330,91 @@ class PowerBaremetal(command.Command):
             parsed_args.node, power_state)
 
         return
+
+
+class SetBaremetal(show.ShowOne):
+    """Set baremetal properties"""
+
+    log = logging.getLogger(__name__ + ".SetBaremetal")
+
+    def get_parser(self, prog_name):
+        parser = super(SetBaremetal, self).get_parser(prog_name)
+
+        parser.add_argument(
+            'node',
+            metavar='<node>',
+            help="Name of UUID of the node."
+        )
+        parser.add_argument(
+            '--update',
+            action='store_true',
+            help='Update existing attribute',
+        )
+        parser.add_argument(
+            'properties',
+            metavar='<path=value>',
+            nargs='+',
+            action='append',
+            default=[],
+            help="Property to set or update. Can be specified "
+                 "multiple times.")
+
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.debug("take_action(%s)", parsed_args)
+
+        baremetal_client = self.app.client_manager.baremetal
+
+        if (not parsed_args.node
+                and not parsed_args.properties
+                and not parsed_args.update):
+            return
+
+        op = 'replace' if parsed_args.update else 'add'
+
+        patch = utils.args_array_to_patch(op, parsed_args.properties[0])
+        node = baremetal_client.node.update(parsed_args.node, patch)._info
+
+        node.pop("links", None)
+
+        return zip(*sorted(six.iteritems(node)))
+
+
+class UnsetBaremetal(show.ShowOne):
+    """Unset baremetal properties"""
+    log = logging.getLogger(__name__ + ".UnsetBaremetal")
+
+    def get_parser(self, prog_name):
+        parser = super(UnsetBaremetal, self).get_parser(prog_name)
+
+        parser.add_argument(
+            'node',
+            metavar='<node>',
+            help="Name of UUID of the node."
+        )
+        parser.add_argument(
+            'properties',
+            metavar='<path=value>',
+            nargs='+',
+            action='append',
+            default=[],
+            help="Property to set or update. Can be specified "
+                 "multiple times.")
+
+        return parser
+
+    def take_action(self, parsed_args):
+        self.log.debug("take_action(%s)", parsed_args)
+
+        baremetal_client = self.app.client_manager.baremetal
+
+        if not parsed_args.node and not parsed_args.properties:
+            return
+
+        patch = utils.args_array_to_patch('remove', parsed_args.properties[0])
+        node = baremetal_client.node.update(parsed_args.node, patch)._info
+
+        node.pop("links", None)
+
+        return zip(*sorted(six.iteritems(node)))
