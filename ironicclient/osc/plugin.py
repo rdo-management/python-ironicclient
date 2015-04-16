@@ -31,6 +31,10 @@ API_VERSION_MAP = {
     "1": "1",
     "1.6": "1",
 }
+API_VERSIONS = {
+    '1': 'ironicclient.osc.client',
+    '1.6': 'ironicclient.osc.client'
+}
 
 
 def make_client(instance):
