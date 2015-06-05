@@ -102,8 +102,10 @@ class ListBaremetal(lister.Lister):
                 parsed_args.limit)
         params['limit'] = parsed_args.limit
         params['marker'] = parsed_args.marker
-        params['associated'] = parsed_args.associated
-        params['maintenance'] = parsed_args.maintenance
+        if parsed_args.associated:
+            params['associated'] = parsed_args.associated
+        if parsed_args.maintenance:
+            params['maintenance'] = parsed_args.maintenance
 
         if parsed_args.detail:
             columns = tuple(res_fields.NODE_FIELD_LABELS)
