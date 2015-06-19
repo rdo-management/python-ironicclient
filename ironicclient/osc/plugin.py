@@ -59,6 +59,7 @@ def make_client(instance):
         http_log_debug=http_log_debug,
         timings=instance.timing,
         region_name=instance._region_name,
+        endpoint=instance.auth_ref.auth_url,
     )
 
     return client
