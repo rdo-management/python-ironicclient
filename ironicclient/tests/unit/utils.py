@@ -42,6 +42,10 @@ class BaseTestCase(testtools.TestCase):
             stderr = self.useFixture(fixtures.StringStream('stderr')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
 
+        # Avoid retries in unrelated tests
+        http.DEFAULT_MAX_RETRIES = 0
+        http.SessionClient.conflict_max_retries = 0
+
 
 class FakeAPI(object):
     def __init__(self, responses):

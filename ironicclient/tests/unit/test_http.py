@@ -469,17 +469,8 @@ class SessionClientTest(utils.BaseTestCase):
         self.assertEqual(expected_result, result)
 
 
+@mock.patch('time.sleep', lambda sec: None)
 class RetriesTestCase(utils.BaseTestCase):
-    def setUp(self):
-        super(RetriesTestCase, self).setUp()
-        old_retry_delay = http.DEFAULT_RETRY_INTERVAL
-        http.DEFAULT_RETRY_INTERVAL = 0.001
-        http.SessionClient.conflict_retry_interval = 0.001
-        self.addCleanup(setattr, http, 'DEFAULT_RETRY_INTERVAL',
-                        old_retry_delay)
-        self.addCleanup(setattr, http.SessionClient, 'conflict_retry_interval',
-                        old_retry_delay)
-
     @mock.patch.object(http.HTTPClient, 'get_connection', autospec=True)
     def test_http_no_retry(self, mock_getcon):
         error_body = _get_error_body()
@@ -494,6 +485,7 @@ class RetriesTestCase(utils.BaseTestCase):
                           '/v1/resources', 'GET')
         self.assertEqual(1, mock_getcon.call_count)
 
+    @mock.patch.object(http, 'DEFAULT_MAX_RETRIES', 2)
     @mock.patch.object(http.HTTPClient, 'get_connection', autospec=True)
     def test_http_retry(self, mock_getcon):
         error_body = _get_error_body()
@@ -557,6 +549,7 @@ class RetriesTestCase(utils.BaseTestCase):
                           '/v1/resources', 'GET')
         self.assertEqual(http.DEFAULT_MAX_RETRIES + 2, mock_getcon.call_count)
 
+    @mock.patch.object(http.SessionClient, 'conflict_max_retries', 2)
     def test_session_retry(self):
         error_body = _get_error_body()
 
